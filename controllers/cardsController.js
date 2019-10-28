@@ -8,6 +8,7 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
 };
+
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((users) => res.send({ data: users }))
@@ -15,7 +16,13 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send(card !== null ? { data: card } : { data: 'Карта не существует' }))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+  Card.findById(req.params.id)
+    .then((card) => {
+      if (!card) return Promise.reject(new Error('Card does not exist'));
+      if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) return Promise.reject(new Error('You cant delete the card that you didnt create'));
+      Card.remove(card)
+        .then((cardToDelete) => res.send(cardToDelete !== null ? { data: card } : { data: 'Nothing to delete' }))
+        .catch(() => res.status(500).send({ message: 'An error occured' }));
+    })
+    .catch(() => res.status(500).send({ message: 'An error occured' }));
 };

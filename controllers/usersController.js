@@ -1,13 +1,41 @@
-const mongo = require('mongodb');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+const { NODE_ENV, JWT_SECRET } = process.env;
 
-  User.create({ name, about, avatar })
+module.exports.createUser = (req, res) => {
+  if (Object.keys(req.body).length === 0) return res.status(400).send({ message: 'Empty request body' });
+
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.send({ data: user }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
 };
+
+module.exports.loginUser = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCreds(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      }).send({ message: 'User logged in' });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: `Произошла ошибка: ${err}` });
+    });
+};
+
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
@@ -15,7 +43,7 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  User.findById({ _id: new mongo.ObjectId(req.params.userId) })
+  User.findById(req.params.userId)
     .then((user) => res.send({ data: user }))
     .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
 };
