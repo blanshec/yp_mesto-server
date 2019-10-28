@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { usersRouter, cardsRouter } = require('./routes/index.js');
+const { createUser, loginUser } = require('./routes/usersRouter.js');
 const auth = require('./middlewares/auth');
 
 
@@ -22,6 +23,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
+
+usersRouter.post('/signup', createUser);
+usersRouter.post('/signin', loginUser);
 
 app.use('/users', auth, usersRouter);
 
