@@ -4,6 +4,7 @@ const User = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
+// eslint-disable-next-line consistent-return
 module.exports.createUser = (req, res) => {
   if (Object.keys(req.body).length === 0) return res.status(400).send({ message: 'Empty request body' });
 
@@ -32,7 +33,7 @@ module.exports.loginUser = (req, res) => {
       }).send({ message: 'User logged in' });
     })
     .catch((err) => {
-      res.status(401).send({ message: `Произошла ошибка: ${err}` });
+      res.status(404).send({ message: `This user does not exist. Error: ${err}` });
     });
 };
 
@@ -45,5 +46,5 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+    .catch((err) => res.status(404).send({ message: `This user does not exist. Error: ${err}` }));
 };

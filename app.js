@@ -3,9 +3,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { usersRouter, cardsRouter } = require('./routes/index.js');
-const { createUser, loginUser } = require('./routes/usersRouter.js');
 const auth = require('./middlewares/auth');
-
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -24,9 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-usersRouter.post('/signup', createUser);
-usersRouter.post('/signin', loginUser);
-
+app.use('/', usersRouter);
+app.use(usersRouter);
 app.use('/users', auth, usersRouter);
 
 app.use('/cards', auth, cardsRouter);

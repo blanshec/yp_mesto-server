@@ -17,6 +17,7 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.id)
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) return Promise.reject(new Error('Card does not exist'));
       if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) return Promise.reject(new Error('You cant delete the card that you didnt create'));

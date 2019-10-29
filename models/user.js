@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
       message: 'Invalid email format',
     },
   },
+  password: {
+    type: String,
+    required: true,
+    minlength: 8,
+    select: false,
+  },
   name: {
     type: String,
     required: true,
@@ -34,19 +40,22 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.statics.findUserByCreds = (email, password) => this.findOne({ email }).select('+password')
-  .then((user) => {
-    if (!user) {
-      throw Promise.reject(new Error('Wrong email or password'));
-    }
-    return bcrypt.compare(password, user.password)
-      .then((matched) => {
-        if (!matched) {
-          throw Promise.reject(new Error('Wrong email or password'));
-        }
-        return user;
-      });
-  })
-  .catch((error) => error);
+// eslint-disable-next-line func-names
+userSchema.statics.findUserByCreds = function (email, password) {
+  return this.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw Promise.reject(new Error('Wrong email or password'));
+      }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            throw Promise.reject(new Error('Wrong email or password'));
+          }
+          return user;
+        });
+    })
+    .catch((error) => error);
+};
 
 module.exports = mongoose.model('user', userSchema);
