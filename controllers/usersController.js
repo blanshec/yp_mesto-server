@@ -33,7 +33,7 @@ module.exports.loginUser = (req, res) => {
       }).send({ message: 'User logged in' });
     })
     .catch((err) => {
-      res.status(404).send({ message: `This user does not exist. Error: ${err}` });
+      res.status(404).send({ message: `This user is not signed up. Error: ${err}` });
     });
 };
 

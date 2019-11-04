@@ -22,8 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-app.use('/', usersRouter);
-app.use(usersRouter);
+app.use('/', auth, usersRouter);
 app.use('/users', auth, usersRouter);
 
 app.use('/cards', auth, cardsRouter);
