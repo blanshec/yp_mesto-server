@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validate = require('validator');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -10,6 +11,10 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => validate.isURL(v),
+      message: (props) => `${props.value} : Invalid URL`,
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -26,9 +31,5 @@ const cardSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-cardSchema.path('link').validate((val) => {
-  const urlRegex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
-  return urlRegex.test(val);
-}, 'Invalid URL.');
 
 module.exports = mongoose.model('card', cardSchema);

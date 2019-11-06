@@ -1,7 +1,10 @@
 const express = require('express');
-const path = require('path');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const { usersRouter, cardsRouter } = require('./routes/index.js');
+const { createUser, loginUser } = require('./controllers/usersController');
+const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -13,22 +16,19 @@ mongoose
     useFindAndModify: false,
   });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(helmet());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5d91fb5edefcf947cc78b3c7',
-  };
+app.use(cookieParser());
 
-  next();
-});
+app.post('/signup', createUser);
+app.post('/signin', loginUser);
 
-app.use('/users', usersRouter);
+app.use('/users', auth, usersRouter);
 
-app.use('/cards', cardsRouter);
+app.use('/cards', auth, cardsRouter);
 
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
