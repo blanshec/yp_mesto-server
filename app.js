@@ -23,12 +23,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-usersRouter.post('/signup', createUser);
-usersRouter.post('/signin', loginUser);
-
-app.use('/', auth, usersRouter);
+app.post('/signup', createUser);
+app.post('/signin', loginUser);
 
 app.use('/users', auth, usersRouter);
+
 app.use('/cards', auth, cardsRouter);
 
 app.use('*', (req, res) => {
