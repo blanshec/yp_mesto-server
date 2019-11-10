@@ -6,7 +6,7 @@
 
 ### Server for an app called Mesto
 
-link to the app: <https://github.com/blanshec/yp_mesto>
+link to the app rep: <https://github.com/blanshec/yp_mesto>
 
 ### Installation
 

@@ -1,11 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const Error500 = require('../errors/500-err');
+const NotFoundError = require('../errors/not-found-err');
 
 // eslint-disable-next-line consistent-return
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   if (Object.keys(req.body).length === 0) return res.status(400).send({ message: 'Empty request body' });
 
   const {
@@ -16,35 +18,53 @@ module.exports.createUser = (req, res) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+    .then((user) => res.status(201).send({
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      email: user.email,
+    }))
+    .catch(() => {
+      const err = new Error('Error creating a user');
+      err.statusCode = 400;
+      next(err);
+    });
 };
 
-module.exports.loginUser = (req, res) => {
+module.exports.loginUser = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCreds(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-      res.cookie('jwt', token, {
+      const token = jwt.sign(
+        { _id: user._id },
+        process.env.NODE_ENV === 'production' ? process.env.JWT_SECRET : 'dev-secret',
+        { expiresIn: '7d' });
+
+      res.status(201).cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
         sameSite: true,
       }).send({ message: 'User logged in' });
     })
-    .catch((err) => {
-      res.status(404).send({ message: `This user is not signed up. Error: ${err}` });
+    .catch((e) => {
+      const err = new Error(e.message);
+      err.statusCode = 401;
+      next(err);
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+    .catch(() => next(new Error500('An error occured while reading user list')));
 };
 
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(404).send({ message: `This user does not exist. Error: ${err}` }));
+    .then((user) => {
+      if (!user) throw Error;
+      res.send({ data: user });
+    })
+    .catch(() => next(new NotFoundError('User with this id does not exist')));
 };
