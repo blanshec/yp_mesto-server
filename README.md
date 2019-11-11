@@ -6,7 +6,10 @@
 
 ### Server for an app called Mesto
 
-link to the app: <https://github.com/blanshec/yp_mesto>
+link to the server: <https://horoshoemesto.gq/>
+IP adress of the server: <http://15.188.62.57/>
+
+link to the app frontend rep: <https://github.com/blanshec/yp_mesto>
 
 ### Installation
 
